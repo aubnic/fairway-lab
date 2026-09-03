@@ -26,10 +26,10 @@ window.GolfScene = (function () {
     const brim = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.18), mat(cap)); brim.position.set(0, 2.05, 0.16); root.add(brim);
     const lLeg = limb(0.16, 0.7, 0.18, pants); lLeg.position.set(0.22, 0.62, 0); lLeg.name = "lLeg"; root.add(lLeg);
     const rLeg = limb(0.16, 0.7, 0.18, pants); rLeg.position.set(-0.22, 0.62, 0); rLeg.name = "rLeg"; root.add(rLeg);
-    const lShoe = limb(0.16, 0.1, 0.32, shoe); lShoe.position.set(0.22, 0.22, 0.02); lShoe.name = "lShoe"; root.add(lShoe);
-    const rShoe = limb(0.16, 0.1, 0.32, shoe); rShoe.position.set(-0.22, 0.22, 0.02); rShoe.name = "rShoe"; root.add(rShoe);
-    const lArm = limb(0.12, 0.58, 0.12, shirt); lArm.position.set(0.34, 1.42, 0.22); lArm.rotation.z = -0.35; lArm.rotation.x = -0.55; lArm.name = "lArm"; root.add(lArm);
-    const rArm = limb(0.12, 0.58, 0.12, shirt); rArm.position.set(-0.34, 1.42, 0.22); rArm.rotation.z = 0.55; rArm.rotation.x = -0.55; rArm.name = "rArm"; root.add(rArm);
+    const lShoe = limb(0.16, 0.1, 0.32, shoe); lShoe.position.set(0.22, 0.22, 0.04); lShoe.name = "lShoe"; root.add(lShoe);
+    const rShoe = limb(0.16, 0.1, 0.32, shoe); rShoe.position.set(-0.22, 0.22, 0.04); rShoe.name = "rShoe"; root.add(rShoe);
+    const lArm = limb(0.12, 0.58, 0.12, shirt); lArm.position.set(0.28, 1.40, 0.16); lArm.name = "lArm"; root.add(lArm);
+    const rArm = limb(0.12, 0.58, 0.12, shirt); rArm.position.set(-0.28, 1.40, 0.16); rArm.name = "rArm"; root.add(rArm);
     clubGroup = new THREE.Group(); root.add(clubGroup);
     shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 1.55, 12), mat(0xcfd6d4, { metalness: 0.7, roughness: 0.25 })); shaft.position.y = -0.55; clubGroup.add(shaft);
     clubHead = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.28), mat(0x2a2f33, { metalness: 0.6, roughness: 0.3 })); clubHead.position.set(0.02, -1.32, 0); clubGroup.add(clubHead);
@@ -47,42 +47,41 @@ window.GolfScene = (function () {
     };
     const L = looks[club];
     shaft.geometry.dispose(); shaft.geometry = new THREE.CylinderGeometry(0.016, 0.02, L.shaft, 12); shaft.position.y = -L.shaft * 0.32; shaft.material.color.setHex(L.shaftColor);
-    clubHead.geometry.dispose(); clubHead.geometry = new THREE.BoxGeometry(...L.head); clubHead.position.set(0.03, -L.shaft * 0.78, 0); clubHead.rotation.x = L.loft; clubHead.material.color.setHex(L.headColor);
-  }
-
-  function snapClubHeadToBall() {
-    if (!clubHead || !ball || !clubGroup || !golfer) return;
-    golfer.updateMatrixWorld(true);
-    const headWorld = new THREE.Vector3();
-    clubHead.getWorldPosition(headWorld);
-    const target = ball.position.clone();
-    target.z -= 0.02;
-    clubGroup.position.add(target.sub(headWorld));
+    clubHead.geometry.dispose(); clubHead.geometry = new THREE.BoxGeometry(...L.head);
+    clubHead.position.set(0.03, -L.shaft * 0.78, 0); clubHead.rotation.x = L.loft; clubHead.material.color.setHex(L.headColor);
   }
 
   function setPose(club, problem) {
     const lArm = golfer.getObjectByName("lArm"), rArm = golfer.getObjectByName("rArm"), torso = golfer.getObjectByName("torso");
     const lShoe = golfer.getObjectByName("lShoe"), rShoe = golfer.getObjectByName("rShoe");
     const lLeg = golfer.getObjectByName("lLeg"), rLeg = golfer.getObjectByName("rLeg");
+
+    // Ballen foran tærne (+Z), kølla mellom oss og kroppen — aldri mellom beina.
     const setups = {
-      driver: { stance: 0.28, ball: [0.10, 0.13, 0.09], torso: [0.10, 0, 0.04], lArm: [-0.55, 0.05, -0.22], rArm: [-0.55, -0.08, 0.22] },
-      jern: { stance: 0.22, ball: [0.00, 0.045, 0.07], torso: [0.18, 0, 0.02], lArm: [-0.62, 0.02, -0.18], rArm: [-0.58, -0.04, 0.18] },
-      wedge: { stance: 0.16, ball: [-0.05, 0.04, 0.07], torso: [0.24, 0, 0], lArm: [-0.68, 0, -0.16], rArm: [-0.62, 0, 0.16] },
-      putter: { stance: 0.15, ball: [0.00, 0.035, 0.09], torso: [0.36, 0, 0], lArm: [-0.85, 0, -0.08], rArm: [-0.85, 0, 0.08] }
+      driver: { stance: 0.28, ball: [0.10, 0.13, 0.38], hands: [0.08, 1.08, 0.36], lean: 0.42, torso: 0.12 },
+      jern:   { stance: 0.22, ball: [0.00, 0.045, 0.34], hands: [0.00, 1.00, 0.34], lean: 0.52, torso: 0.20 },
+      wedge:  { stance: 0.16, ball: [-0.04, 0.04, 0.32], hands: [-0.02, 0.96, 0.32], lean: 0.60, torso: 0.26 },
+      putter: { stance: 0.15, ball: [0.00, 0.035, 0.30], hands: [0.00, 1.05, 0.30], lean: 0.18, torso: 0.34 }
     };
     const p = setups[club];
     golfer.rotation.set(0, 0, 0);
-    lShoe.position.set(p.stance, 0.22, 0.02); rShoe.position.set(-p.stance, 0.22, 0.02);
+    lShoe.position.set(p.stance, 0.22, 0.04); rShoe.position.set(-p.stance, 0.22, 0.04);
     lLeg.position.set(p.stance, 0.62, 0); rLeg.position.set(-p.stance, 0.62, 0);
-    lArm.rotation.set(...p.lArm); rArm.rotation.set(...p.rArm); torso.rotation.set(...p.torso);
+    torso.rotation.set(p.torso, 0, 0);
+    lArm.position.set(0.22, 1.38, 0.20); rArm.position.set(-0.22, 1.38, 0.20);
+    lArm.rotation.set(-0.95, 0.12, -0.35); rArm.rotation.set(-0.95, -0.12, 0.35);
+
     ball.position.set(p.ball[0], p.ball[1], p.ball[2]);
     tee.visible = club === "driver"; tee.position.set(p.ball[0], 0.02, p.ball[2]);
-    const looks = { driver: { shaft: 1.72, lean: 0.28 }, jern: { shaft: 1.42, lean: 0.38 }, wedge: { shaft: 1.28, lean: 0.46 }, putter: { shaft: 1.05, lean: 0.12 } };
-    const L = looks[club];
-    clubGroup.rotation.set(-L.lean, 0, 0.06);
-    const headLocalY = -L.shaft * 0.78;
-    clubGroup.position.set(p.ball[0], p.ball[1] - headLocalY + 0.03, p.ball[2] + Math.sin(L.lean) * Math.abs(headLocalY) * 0.4);
-    snapClubHeadToBall();
+
+    const L = { driver: 1.72, jern: 1.42, wedge: 1.28, putter: 1.05 }[club];
+    clubGroup.rotation.set(-p.lean, 0, 0);
+    clubGroup.position.set(p.hands[0], p.hands[1], p.hands[2]);
+    golfer.updateMatrixWorld(true);
+    const headWorld = new THREE.Vector3();
+    clubHead.getWorldPosition(headWorld);
+    clubGroup.position.add(ball.position.clone().sub(headWorld));
+
     if (problem === "slice" || problem === "push") clubHead.rotation.y = 0.28;
     else if (problem === "hook" || problem === "pull") clubHead.rotation.y = -0.24;
     else clubHead.rotation.y = 0;
