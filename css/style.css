@@ -138,6 +138,24 @@ select:focus {
   gap: 8px;
 }
 
+.upload-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.95rem;
+  color: var(--gold-soft);
+  background: var(--bg-elev);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.upload-btn:hover { border-color: var(--gold); }
+
 .choice-btn {
   border: 1px solid var(--line);
   background: rgba(16, 38, 24, 0.95);
@@ -230,10 +248,7 @@ select:focus {
   background: rgba(196, 168, 90, 0.08);
 }
 
-.tips {
-  display: grid;
-  gap: 10px;
-}
+.tips { display: grid; gap: 10px; }
 
 .tip {
   padding: 10px 12px;
