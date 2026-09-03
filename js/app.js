@@ -42,12 +42,9 @@
     const problemLabel = GOLF_DATA.problems[state.club].find((p) => p.id === state.problem)?.label || "";
     const gripLabel = GOLF_DATA.grips.find((g) => g.id === state.grip).label;
     const goalLabel = GOLF_DATA.goals.find((g) => g.id === state.goal).label;
-    chipsEl.innerHTML = [clubLabel, problemLabel, gripLabel, goalLabel]
-      .map((t) => `<span class="chip">${t}</span>`).join("");
+    chipsEl.innerHTML = [clubLabel, problemLabel, gripLabel, goalLabel].map((t) => `<span class="chip">${t}</span>`).join("");
     const tips = buildTips(state.club, state.problem, state.grip, state.goal);
-    tipsEl.innerHTML = tips.map((t) =>
-      `<div class="tip"><strong>${t.title}:</strong> ${t.text}</div>`
-    ).join("");
+    tipsEl.innerHTML = tips.map((t) => `<div class="tip"><strong>${t.title}:</strong> ${t.text}</div>`).join("");
     poseNote.textContent = poseText(state.club);
     GolfScene.update(state.club, state.problem);
   }
@@ -56,35 +53,27 @@
     const btn = e.target.closest("[data-club]");
     if (!btn) return;
     state.club = btn.dataset.club;
-    renderClubs();
-    renderProblems();
-    renderTips();
+    renderClubs(); renderProblems(); renderTips();
   });
-
   problemEl.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-problem]");
     if (!btn) return;
     state.problem = btn.dataset.problem;
-    renderProblems();
-    renderTips();
+    renderProblems(); renderTips();
   });
   gripEl.addEventListener("change", () => { state.grip = gripEl.value; renderTips(); });
   goalEl.addEventListener("change", () => { state.goal = goalEl.value; renderTips(); });
 
   const faceFile = document.getElementById("face-file");
   const faceClear = document.getElementById("face-clear");
-  if (faceFile) {
-    faceFile.addEventListener("change", () => {
-      const file = faceFile.files && faceFile.files[0];
-      if (file) GolfScene.setFace(file);
-    });
-  }
-  if (faceClear) {
-    faceClear.addEventListener("click", () => {
-      if (faceFile) faceFile.value = "";
-      GolfScene.clearFace();
-    });
-  }
+  if (faceFile) faceFile.addEventListener("change", () => {
+    const file = faceFile.files && faceFile.files[0];
+    if (file) GolfScene.setFace(file);
+  });
+  if (faceClear) faceClear.addEventListener("click", () => {
+    if (faceFile) faceFile.value = "";
+    GolfScene.clearFace();
+  });
 
   renderClubs();
   fillSelect(gripEl, GOLF_DATA.grips, state.grip);
@@ -95,6 +84,7 @@
   const errorEl = document.getElementById("scene-error");
   try {
     GolfScene.init(canvas);
+    if (window.DEFAULT_FACE) GolfScene.setFace(window.DEFAULT_FACE);
   } catch (err) {
     console.error(err);
     if (errorEl) errorEl.classList.add("visible");
