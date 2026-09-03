@@ -47,6 +47,28 @@
   });
   gripEl.addEventListener("change", () => { state.grip = gripEl.value; renderTips(); });
   goalEl.addEventListener("change", () => { state.goal = goalEl.value; renderTips(); });
+
+  const music = document.getElementById("bg-music");
+  const musicBtn = document.getElementById("music-btn");
+  if (music && musicBtn) {
+    music.volume = 0.28;
+    musicBtn.addEventListener("click", async () => {
+      try {
+        if (music.paused) {
+          await music.play();
+          musicBtn.classList.add("active");
+          musicBtn.textContent = "Pause musikk";
+        } else {
+          music.pause();
+          musicBtn.classList.remove("active");
+          musicBtn.textContent = "Spill av bakgrunnsmusikk";
+        }
+      } catch (err) {
+        musicBtn.textContent = "Kunne ikke starte musikk";
+      }
+    });
+  }
+
   renderClubs();
   fillSelect(gripEl, GOLF_DATA.grips, state.grip);
   fillSelect(goalEl, GOLF_DATA.goals, state.goal);
