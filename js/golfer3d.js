@@ -56,30 +56,30 @@ window.GolfScene = (function () {
     const lShoe = golfer.getObjectByName("lShoe"), rShoe = golfer.getObjectByName("rShoe");
     const lLeg = golfer.getObjectByName("lLeg"), rLeg = golfer.getObjectByName("rLeg");
     const setups = {
-      driver: { stance: 0.28, hands: [0.14, 1.22, 0.34], lean: 0.28, tilt: 0.10, torso: 0.10, ballY: 0.13, ballAhead: 0.13 },
-      jern:   { stance: 0.22, hands: [0.06, 1.08, 0.32], lean: 0.36, tilt: 0.08, torso: 0.18, ballY: 0.05, ballAhead: 0.12 },
-      wedge:  { stance: 0.16, hands: [0.02, 1.04, 0.30], lean: 0.42, tilt: 0.06, torso: 0.24, ballY: 0.045, ballAhead: 0.11 },
-      putter: { stance: 0.15, hands: [0.00, 1.12, 0.28], lean: 0.14, tilt: 0.00, torso: 0.32, ballY: 0.04, ballAhead: 0.12 }
+      driver: { stance: 0.28, ballX: 0.08, ballZ: 0.22, ballY: 0.13, handsY: 1.20, lean: 0.28 },
+      jern:   { stance: 0.22, ballX: 0.00, ballZ: 0.20, ballY: 0.05, handsY: 1.08, lean: 0.36 },
+      wedge:  { stance: 0.16, ballX: -0.05, ballZ: 0.20, ballY: 0.045, handsY: 1.04, lean: 0.42 },
+      putter: { stance: 0.15, ballX: 0.00, ballZ: 0.20, ballY: 0.04, handsY: 1.12, lean: 0.14 }
     };
     const p = setups[club];
     golfer.rotation.set(0, 0, 0);
     lShoe.position.set(p.stance, 0.22, 0.04); rShoe.position.set(-p.stance, 0.22, 0.04);
     lLeg.position.set(p.stance, 0.62, 0); rLeg.position.set(-p.stance, 0.62, 0);
-    torso.rotation.set(p.torso, 0, 0);
-    lArm.position.set(0.24, 1.38, 0.20); rArm.position.set(-0.18, 1.38, 0.22);
+    torso.rotation.set(club === "putter" ? 0.32 : club === "wedge" ? 0.24 : club === "jern" ? 0.18 : 0.10, 0, 0);
+    lArm.position.set(0.22, 1.38, 0.20); rArm.position.set(-0.18, 1.38, 0.22);
     lArm.rotation.set(-1.05, 0.18, -0.28); rArm.rotation.set(-1.05, -0.05, 0.42);
 
-    clubGroup.rotation.set(-p.lean, p.tilt, 0.08);
-    clubGroup.position.set(p.hands[0], p.hands[1], p.hands[2]);
-    golfer.updateMatrixWorld(true);
-    const headWorld = new THREE.Vector3();
-    clubHead.getWorldPosition(headWorld);
-    clubGroup.position.y += (p.ballY + 0.03) - headWorld.y;
-    golfer.updateMatrixWorld(true);
-    clubHead.getWorldPosition(headWorld);
-    ball.position.set(headWorld.x + 0.03, p.ballY, headWorld.z + p.ballAhead);
+    ball.position.set(p.ballX, p.ballY, p.ballZ);
     tee.visible = club === "driver";
-    tee.position.set(ball.position.x, 0.02, ball.position.z);
+    tee.position.set(p.ballX, 0.02, p.ballZ);
+
+    clubGroup.rotation.set(-p.lean, 0, 0.06);
+    clubGroup.position.set(p.ballX, p.handsY, p.ballZ - 0.06);
+    golfer.updateMatrixWorld(true);
+    const hw = new THREE.Vector3();
+    clubHead.getWorldPosition(hw);
+    const target = new THREE.Vector3(p.ballX, p.ballY + 0.02, p.ballZ - 0.09);
+    clubGroup.position.add(target.sub(hw));
 
     if (problem === "slice" || problem === "push") clubHead.rotation.y = 0.28;
     else if (problem === "hook" || problem === "pull") clubHead.rotation.y = -0.24;
