@@ -1,6 +1,6 @@
 window.GolfScene = (function () {
-  let renderer, scene, camera, controls, golfer, clubGroup, clubHead, shaft, ball, tee;
-  let targetRot = { x: 0.15, y: 0.6 };
+  let renderer, scene, camera, golfer, clubGroup, clubHead, shaft, ball, tee;
+  let orbit = { theta: 0.85, phi: 1.15, radius: 5.4, targetY: 1.15 };
 
   function mat(color, extras = {}) {
     return new THREE.MeshStandardMaterial({
@@ -128,47 +128,14 @@ window.GolfScene = (function () {
 
   function setPose(club, problem) {
     golfer.rotation.set(0, 0.15, 0);
-    golfer.position.set(0, 0, 0);
     const lArm = golfer.getObjectByName("lArm");
     const rArm = golfer.getObjectByName("rArm");
     const torso = golfer.getObjectByName("torso");
     const poses = {
-      driver: {
-        golferRot: [-0.02, 0.2, 0],
-        club: [-0.05, 0.15, -0.7],
-        clubPos: [0.48, 1.22, 0.22],
-        lArm: [-0.25, 0, 0.28],
-        rArm: [-0.62, 0, -0.62],
-        torso: [0.08, 0, 0.06],
-        ball: [0.55, 0.08, 0.85]
-      },
-      jern: {
-        golferRot: [0.02, 0.12, 0],
-        club: [0.05, 0.05, -0.95],
-        clubPos: [0.38, 1.08, 0.18],
-        lArm: [-0.4, 0, 0.38],
-        rArm: [-0.5, 0, -0.48],
-        torso: [0.16, 0, 0.04],
-        ball: [0.22, 0.06, 0.62]
-      },
-      wedge: {
-        golferRot: [0.05, 0.08, 0],
-        club: [0.12, 0.0, -1.05],
-        clubPos: [0.32, 1.0, 0.16],
-        lArm: [-0.48, 0, 0.42],
-        rArm: [-0.42, 0, -0.4],
-        torso: [0.22, 0, 0.02],
-        ball: [0.12, 0.06, 0.48]
-      },
-      putter: {
-        golferRot: [0.12, 0.0, 0],
-        club: [0.35, 0, -0.05],
-        clubPos: [0.02, 1.12, 0.32],
-        lArm: [-0.7, 0, 0.15],
-        rArm: [-0.7, 0, -0.15],
-        torso: [0.38, 0, 0],
-        ball: [0.02, 0.045, 0.62]
-      }
+      driver: { golferRot: [-0.02, 0.2, 0], club: [-0.05, 0.15, -0.7], clubPos: [0.48, 1.22, 0.22], lArm: [-0.25, 0, 0.28], rArm: [-0.62, 0, -0.62], torso: [0.08, 0, 0.06], ball: [0.55, 0.08, 0.85] },
+      jern: { golferRot: [0.02, 0.12, 0], club: [0.05, 0.05, -0.95], clubPos: [0.38, 1.08, 0.18], lArm: [-0.4, 0, 0.38], rArm: [-0.5, 0, -0.48], torso: [0.16, 0, 0.04], ball: [0.22, 0.06, 0.62] },
+      wedge: { golferRot: [0.05, 0.08, 0], club: [0.12, 0.0, -1.05], clubPos: [0.32, 1.0, 0.16], lArm: [-0.48, 0, 0.42], rArm: [-0.42, 0, -0.4], torso: [0.22, 0, 0.02], ball: [0.12, 0.06, 0.48] },
+      putter: { golferRot: [0.12, 0.0, 0], club: [0.35, 0, -0.05], clubPos: [0.02, 1.12, 0.32], lArm: [-0.7, 0, 0.15], rArm: [-0.7, 0, -0.15], torso: [0.38, 0, 0], ball: [0.02, 0.045, 0.62] }
     };
     const p = poses[club];
     golfer.rotation.set(...p.golferRot);
@@ -186,22 +153,63 @@ window.GolfScene = (function () {
     else clubHead.rotation.y = 0;
   }
 
+  function sizeOf(canvas) {
+    const parent = canvas.parentElement || canvas;
+    const w = Math.max(parent.clientWidth || canvas.clientWidth || 800, 1);
+    const h = Math.max(parent.clientHeight || canvas.clientHeight || 600, 1);
+    return { w, h };
+  }
+
+  function applyCamera() {
+    const x = orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta);
+    const y = orbit.radius * Math.cos(orbit.phi) + 0.35;
+    const z = orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta);
+    camera.position.set(x, y, z);
+    camera.lookAt(0, orbit.targetY, 0);
+  }
+
+  function bindOrbit(canvas) {
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    canvas.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener("pointerup", () => { dragging = false; });
+    canvas.addEventListener("pointercancel", () => { dragging = false; });
+    canvas.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      orbit.theta -= dx * 0.008;
+      orbit.phi = Math.min(1.45, Math.max(0.25, orbit.phi - dy * 0.008));
+      applyCamera();
+    });
+    canvas.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      orbit.radius = Math.min(9, Math.max(2.6, orbit.radius + e.deltaY * 0.008));
+      applyCamera();
+    }, { passive: false });
+  }
+
   function init(canvas) {
+    if (typeof THREE === "undefined") throw new Error("Three.js ble ikke lastet");
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a1a10);
     scene.fog = new THREE.Fog(0x0a1a10, 8, 22);
-    camera = new THREE.PerspectiveCamera(42, Math.max(canvas.clientWidth, 1) / Math.max(canvas.clientHeight, 1), 0.1, 80);
-    camera.position.set(3.2, 2.1, 4.2);
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+    const { w, h } = sizeOf(canvas);
+    camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 80);
+    applyCamera();
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h, false);
     renderer.shadowMap.enabled = true;
-    controls = new THREE.OrbitControls(camera, canvas);
-    controls.enableDamping = true;
-    controls.target.set(0, 1.1, 0);
-    controls.minDistance = 2.4;
-    controls.maxDistance = 8;
-    controls.maxPolarAngle = Math.PI * 0.49;
+    bindOrbit(canvas);
     scene.add(new THREE.HemisphereLight(0xdde7d8, 0x1a2a18, 0.85));
     const sun = new THREE.DirectionalLight(0xfff3d0, 1.15);
     sun.position.set(4, 8, 3);
@@ -231,13 +239,14 @@ window.GolfScene = (function () {
     setClubLook("driver");
     setPose("driver", "slice");
     window.addEventListener("resize", onResize);
+    requestAnimationFrame(onResize);
+    setTimeout(onResize, 80);
     animate();
   }
 
   function onResize() {
-    const canvas = renderer.domElement;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
+    if (!renderer) return;
+    const { w, h } = sizeOf(renderer.domElement);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h, false);
@@ -245,11 +254,11 @@ window.GolfScene = (function () {
 
   function animate() {
     requestAnimationFrame(animate);
-    controls.update();
     renderer.render(scene, camera);
   }
 
   function update(club, problem) {
+    if (!golfer || !clubHead) return;
     setClubLook(club);
     setPose(club, problem);
   }
