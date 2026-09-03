@@ -15,9 +15,13 @@ window.GolfScene = (function () {
     const skin = 0xc4a07a, shirt = 0xf3efe4, pants = 0x163024, shoe = 0xf2f2f2, cap = 0x1f6b3a;
     const hips = limb(0.42, 0.18, 0.26, pants); hips.position.y = 1.05; root.add(hips);
     const torso = limb(0.46, 0.62, 0.28, shirt); torso.position.y = 1.48; torso.name = "torso"; root.add(torso);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 24, 18), mat(skin)); head.position.y = 1.95; head.name = "head"; head.castShadow = true; root.add(head);
-    const face = new THREE.Mesh(new THREE.CircleGeometry(0.155, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45, metalness: 0, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
-    face.position.set(0, 1.96, 0.17); face.name = "face"; face.visible = false; root.add(face);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 24, 18), mat(skin));
+    head.position.y = 1.95; head.scale.set(1, 1, 0.65); head.name = "head"; head.castShadow = true; root.add(head);
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.16, 48), new THREE.MeshStandardMaterial({
+      color: 0xffffff, roughness: 0.45, metalness: 0, side: THREE.DoubleSide, depthWrite: true,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4
+    }));
+    face.position.set(0, 1.96, 0.22); face.name = "face"; face.visible = false; root.add(face);
     const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.18, 0.08, 20), mat(cap)); hat.position.set(0, 2.08, 0); root.add(hat);
     const brim = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.18), mat(cap)); brim.position.set(0, 2.05, 0.16); root.add(brim);
     const lLeg = limb(0.16, 0.7, 0.18, pants); lLeg.position.set(0.18, 0.62, 0); lLeg.name = "lLeg"; root.add(lLeg);
@@ -121,17 +125,19 @@ window.GolfScene = (function () {
     const face = golfer && golfer.getObjectByName("face"); if (!face || !face.visible || !camera) return;
     const head = new THREE.Vector3(0, 1.96, 0);
     const dir = camera.position.clone().sub(head).normalize();
-    face.position.copy(head.clone().add(dir.multiplyScalar(0.17)));
+    face.position.copy(head.clone().add(dir.multiplyScalar(0.22)));
     face.lookAt(camera.position);
   }
   function animate() { requestAnimationFrame(animate); aimFaceAtCamera(); renderer.render(scene, camera); }
   function update(club, problem) { if (!golfer || !clubHead) return; setClubLook(club); setPose(club, problem); }
   function circleCrop(image) {
     const size = 512, canvas = document.createElement("canvas"); canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext("2d"); ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#c4a07a"; ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.closePath(); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
     const side = Math.min(image.width, image.height);
     ctx.drawImage(image, (image.width - side) / 2, (image.height - side) / 2, side, side, 0, 0, size, size);
-    return canvas;
+    ctx.restore(); return canvas;
   }
   function setFace(fileOrUrl) {
     const face = golfer && golfer.getObjectByName("face"); if (!face) return;
@@ -139,7 +145,8 @@ window.GolfScene = (function () {
       const tex = new THREE.CanvasTexture(circleCrop(img));
       tex.colorSpace = THREE.SRGBColorSpace || THREE.sRGBEncoding;
       if (face.material.map) face.material.map.dispose();
-      face.material.map = tex; face.material.opacity = 1; face.material.needsUpdate = true; face.visible = true;
+      face.material.map = tex; face.material.transparent = false; face.material.opacity = 1; face.material.needsUpdate = true; face.visible = true;
+      const skull = golfer.getObjectByName("head"); if (skull) skull.visible = false;
     };
     const img = new Image();
     if (typeof fileOrUrl === "string") { img.onload = () => apply(img); img.src = fileOrUrl; }
