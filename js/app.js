@@ -15,6 +15,14 @@
     ).join("");
   }
 
+  function renderProblems() {
+    const list = GOLF_DATA.problems[state.club];
+    if (!list.some((p) => p.id === state.problem)) state.problem = list[0].id;
+    problemEl.innerHTML = list.map((p) =>
+      `<button type="button" class="choice-btn ${p.id === state.problem ? "active" : ""}" data-problem="${p.id}">${p.label}</button>`
+    ).join("");
+  }
+
   function renderClubs() {
     clubEl.innerHTML = Object.entries(GOLF_DATA.clubs).map(([id, c]) =>
       `<button class="club-btn ${id === state.club ? "active" : ""}" data-club="${id}">${c.label}</button>`
@@ -47,30 +55,37 @@
     GolfScene.update(state.club, state.problem);
   }
 
-  function syncProblems() {
-    const list = GOLF_DATA.problems[state.club];
-    if (!list.some((p) => p.id === state.problem)) state.problem = list[0].id;
-    fillSelect(problemEl, list, state.problem);
-  }
-
   clubEl.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-club]");
     if (!btn) return;
     state.club = btn.dataset.club;
     renderClubs();
-    syncProblems();
+    renderProblems();
     renderTips();
   });
 
-  problemEl.addEventListener("change", () => { state.problem = problemEl.value; renderTips(); });
+  problemEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-problem]");
+    if (!btn) return;
+    state.problem = btn.dataset.problem;
+    renderProblems();
+    renderTips();
+  });
   gripEl.addEventListener("change", () => { state.grip = gripEl.value; renderTips(); });
   goalEl.addEventListener("change", () => { state.goal = goalEl.value; renderTips(); });
 
   renderClubs();
   fillSelect(gripEl, GOLF_DATA.grips, state.grip);
   fillSelect(goalEl, GOLF_DATA.goals, state.goal);
-  syncProblems();
+  renderProblems();
 
-  GolfScene.init(document.getElementById("scene"));
+  const canvas = document.getElementById("scene");
+  const errorEl = document.getElementById("scene-error");
+  try {
+    GolfScene.init(canvas);
+  } catch (err) {
+    console.error(err);
+    if (errorEl) errorEl.classList.add("visible");
+  }
   renderTips();
 })();
