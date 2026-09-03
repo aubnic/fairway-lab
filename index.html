@@ -17,36 +17,35 @@
         <h1>Fairway Lab</h1>
       </div>
       <p class="lede">Velg kølle, feil og grep. Få konkrete mikrotips og se en 3D-oppstilling du kan dreie rundt med musen.</p>
-
       <div class="field">
         <label>Kølle</label>
         <div class="club-grid" id="club-grid"></div>
       </div>
-
       <div class="field">
         <label>Hva sliter du med?</label>
         <div class="choice-grid" id="problem" role="group" aria-label="Hva sliter du med"></div>
       </div>
-
       <div class="field">
         <label for="grip">Grep</label>
         <select id="grip"></select>
       </div>
-
       <div class="field">
         <label for="goal">Hva vil du oppnå?</label>
         <select id="goal"></select>
       </div>
-
+      <div class="field">
+        <label for="face-file">Ansikt på figuren</label>
+        <label class="upload-btn" for="face-file">Last opp bilde av kompis</label>
+        <input id="face-file" type="file" accept="image/*" hidden />
+        <button type="button" class="choice-btn" id="face-clear">Fjern bilde</button>
+      </div>
       <footer class="mini">Tipsene er øvingsråd, ikke erstatning for time hos pro. 3D-figuren viser adresse – dra for å se fra andre vinkler.</footer>
     </aside>
-
     <main class="stage">
       <canvas id="scene"></canvas>
       <div class="scene-error" id="scene-error">3D-figuren kunne ikke lastes. Prøv å oppdatere siden.</div>
       <div class="hint">Dra med musen for å rotere · scroll for zoom</div>
     </main>
-
     <aside class="tips-panel">
       <section class="card">
         <h2>Dine justeringer</h2>
@@ -59,7 +58,6 @@
       </section>
     </aside>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
   <script src="js/tips.js"></script>
   <script src="js/golfer3d.js"></script>

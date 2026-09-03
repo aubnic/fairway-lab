@@ -6,7 +6,6 @@
   const tipsEl = document.getElementById("tips");
   const poseNote = document.getElementById("pose-note");
   const chipsEl = document.getElementById("chips");
-
   const state = { club: "driver", problem: "slice", grip: "vardon", goal: "presisjon" };
 
   function fillSelect(el, items, selected) {
@@ -43,10 +42,8 @@
     const problemLabel = GOLF_DATA.problems[state.club].find((p) => p.id === state.problem)?.label || "";
     const gripLabel = GOLF_DATA.grips.find((g) => g.id === state.grip).label;
     const goalLabel = GOLF_DATA.goals.find((g) => g.id === state.goal).label;
-
     chipsEl.innerHTML = [clubLabel, problemLabel, gripLabel, goalLabel]
       .map((t) => `<span class="chip">${t}</span>`).join("");
-
     const tips = buildTips(state.club, state.problem, state.grip, state.goal);
     tipsEl.innerHTML = tips.map((t) =>
       `<div class="tip"><strong>${t.title}:</strong> ${t.text}</div>`
@@ -73,6 +70,21 @@
   });
   gripEl.addEventListener("change", () => { state.grip = gripEl.value; renderTips(); });
   goalEl.addEventListener("change", () => { state.goal = goalEl.value; renderTips(); });
+
+  const faceFile = document.getElementById("face-file");
+  const faceClear = document.getElementById("face-clear");
+  if (faceFile) {
+    faceFile.addEventListener("change", () => {
+      const file = faceFile.files && faceFile.files[0];
+      if (file) GolfScene.setFace(file);
+    });
+  }
+  if (faceClear) {
+    faceClear.addEventListener("click", () => {
+      if (faceFile) faceFile.value = "";
+      GolfScene.clearFace();
+    });
+  }
 
   renderClubs();
   fillSelect(gripEl, GOLF_DATA.grips, state.grip);
