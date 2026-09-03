@@ -40,27 +40,26 @@ window.GolfScene = (function () {
 
   function setClubLook(club) {
     const looks = {
-      driver: { shaft: 1.72, head: [0.16, 0.1, 0.32], headColor: 0x1a1f24, loft: 0.08, shaftColor: 0xd7dde0 },
-      jern: { shaft: 1.42, head: [0.08, 0.1, 0.22], headColor: 0x9aa3a8, loft: 0.28, shaftColor: 0xc5ccd0 },
-      wedge: { shaft: 1.28, head: [0.09, 0.12, 0.22], headColor: 0xb7c0c4, loft: 0.48, shaftColor: 0xc5ccd0 },
-      putter: { shaft: 1.05, head: [0.08, 0.06, 0.3], headColor: 0x2f3a36, loft: 0.02, shaftColor: 0xc0a35b }
+      driver: { shaft: 1.55, head: [0.18, 0.08, 0.22], headColor: 0x1a1f24, loft: 0.06, shaftColor: 0xd7dde0 },
+      jern: { shaft: 1.32, head: [0.08, 0.08, 0.20], headColor: 0x9aa3a8, loft: 0.22, shaftColor: 0xc5ccd0 },
+      wedge: { shaft: 1.20, head: [0.09, 0.10, 0.20], headColor: 0xb7c0c4, loft: 0.40, shaftColor: 0xc5ccd0 },
+      putter: { shaft: 1.00, head: [0.08, 0.05, 0.26], headColor: 0x2f3a36, loft: 0.02, shaftColor: 0xc0a35b }
     };
     const L = looks[club];
     shaft.geometry.dispose(); shaft.geometry = new THREE.CylinderGeometry(0.016, 0.02, L.shaft, 12); shaft.position.y = -L.shaft * 0.32; shaft.material.color.setHex(L.shaftColor);
     clubHead.geometry.dispose(); clubHead.geometry = new THREE.BoxGeometry(...L.head);
-    clubHead.position.set(0.03, -L.shaft * 0.78, 0); clubHead.rotation.x = L.loft; clubHead.material.color.setHex(L.headColor);
+    clubHead.position.set(0.03, -L.shaft * 0.72, 0); clubHead.rotation.x = L.loft; clubHead.material.color.setHex(L.headColor);
   }
 
   function setPose(club, problem) {
     const lArm = golfer.getObjectByName("lArm"), rArm = golfer.getObjectByName("rArm"), torso = golfer.getObjectByName("torso");
     const lShoe = golfer.getObjectByName("lShoe"), rShoe = golfer.getObjectByName("rShoe");
     const lLeg = golfer.getObjectByName("lLeg"), rLeg = golfer.getObjectByName("rLeg");
-
     const setups = {
-      driver: { stance: 0.28, hands: [0.14, 1.10, 0.34], lean: 0.38, tilt: 0.12, torso: 0.10, ballY: 0.13, ballAhead: 0.14 },
-      jern:   { stance: 0.22, hands: [0.06, 1.02, 0.32], lean: 0.46, tilt: 0.10, torso: 0.18, ballY: 0.05, ballAhead: 0.12 },
-      wedge:  { stance: 0.16, hands: [0.02, 0.98, 0.30], lean: 0.52, tilt: 0.08, torso: 0.24, ballY: 0.045, ballAhead: 0.11 },
-      putter: { stance: 0.15, hands: [0.00, 1.08, 0.28], lean: 0.16, tilt: 0.00, torso: 0.32, ballY: 0.04, ballAhead: 0.12 }
+      driver: { stance: 0.28, hands: [0.14, 1.22, 0.34], lean: 0.28, tilt: 0.10, torso: 0.10, ballY: 0.13, ballAhead: 0.13 },
+      jern:   { stance: 0.22, hands: [0.06, 1.08, 0.32], lean: 0.36, tilt: 0.08, torso: 0.18, ballY: 0.05, ballAhead: 0.12 },
+      wedge:  { stance: 0.16, hands: [0.02, 1.04, 0.30], lean: 0.42, tilt: 0.06, torso: 0.24, ballY: 0.045, ballAhead: 0.11 },
+      putter: { stance: 0.15, hands: [0.00, 1.12, 0.28], lean: 0.14, tilt: 0.00, torso: 0.32, ballY: 0.04, ballAhead: 0.12 }
     };
     const p = setups[club];
     golfer.rotation.set(0, 0, 0);
@@ -75,7 +74,10 @@ window.GolfScene = (function () {
     golfer.updateMatrixWorld(true);
     const headWorld = new THREE.Vector3();
     clubHead.getWorldPosition(headWorld);
-    ball.position.set(headWorld.x + 0.02, p.ballY, headWorld.z + p.ballAhead);
+    clubGroup.position.y += (p.ballY + 0.03) - headWorld.y;
+    golfer.updateMatrixWorld(true);
+    clubHead.getWorldPosition(headWorld);
+    ball.position.set(headWorld.x + 0.03, p.ballY, headWorld.z + p.ballAhead);
     tee.visible = club === "driver";
     tee.position.set(ball.position.x, 0.02, ball.position.z);
 
